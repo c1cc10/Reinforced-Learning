@@ -107,7 +107,7 @@ class Computer(Player):
             if len(ngue) > 0:
                 self.next_state.move = random.choice(ngue)
             else:
-                print("ngue vuoto, vado a caso")
+                #print("ngue vuoto, vado a caso")
                 self.next_state.move = random.choice(legal_moves(buffer_board))
         #self.memorize(board, my_move)
         board.value_display(self.next_state.value)
@@ -119,16 +119,16 @@ class Computer(Player):
         if self.actual_state.move is None:
             self.actual_state.move = self.next_state.move
         if winner_sign == EMPTY: # partita in corso
-            print("valutation: ")
+            #print("valutation: ")
             self.actual_state.value[self.actual_state.move] +=  self.step_size * (self.next_state.value[self.next_state.move] - self.actual_state.value[self.actual_state.move])
             self.actual_state = self.next_state
         elif winner_sign == self.sign: #abbiamo vinto
-            print("gain: ")
+            #print("gain: ")
             self.actual_state.value[self.actual_state.move] +=  self.step_size * (WINS - self.actual_state.value[self.actual_state.move])
         else: #draw is a loss 
-            print("pain: ")
+            #print("pain: ")
             self.actual_state.value[self.actual_state.move] +=  self.step_size * (LOSES - self.actual_state.value[self.actual_state.move])
-        print(self.actual_state.value[self.actual_state.move])
+        #print(self.actual_state.value[self.actual_state.move])
 
 class State:
     def __init__(self, board, move):
