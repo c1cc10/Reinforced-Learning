@@ -5,17 +5,25 @@ experiment and base code for article explaining my understanding of the matter
 That's my first experiment based on what I read in R. Sutton's book: "Reinforced Learning, an introduction". It's a tic-tac-toe player which can race against itself or against a human player.
 To run it, first run python3 command and get the command line. Then import the file as a module:
 
-> import tris_rl_c1 as tris
+import tris_rl_c1 as tris
+
 initialize the Game by setting robot-war-mode ON: 
-> mio = tris.Game(True)
+
+mio = tris.Game(True)
+
 Now make it play some games, so that it can build up a good experience:
-> for i in range(0,100000):
->     mio.start()
+
+for i in range(0,100000):
+    mio.start()
 
 Once it's done, try it by yourself. First disengage robot-war-mode:
-> mio.robowar = False
+
+mio.robowar = False
+
 and then just start it:
-> mio.start()
+
+mio.start()
+
 # game instructions
 Game always starts by asking you if you want to start first. Just press y or n and go on. Note: computer is best trained as first player
 Application will always show you odds for each square and then the moves you and your opponent made:
