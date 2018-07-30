@@ -3,26 +3,32 @@ experiment and base code for article explaining my understanding of the matter
 
 # Tris-rl-c1
 That's my first experiment based on what I read in R. Sutton's book: "Reinforced Learning, an introduction". It's a tic-tac-toe player which can race against itself or against a human player.
-_prova_
 
-To run it, first run *python3* command and get the command line. Then import the file as a module:
+# Run the example
+First make sure you have access to *python3* (python  _VERSION 3_) application. 
+Then download *tris_rl_c1.py* file 
+Run tris_rl_c1.py file using *python3* interpreter.
+If you just run it, then it will play 10000 (ten thousands) games against another Computer player and then it will ask you if you want to get along playing human vs computer. If you have a go on it, then please remember Computer should start first in order to exploit its learning. 
+If you like to have one more interactive experience, then:
+* run _python3_ to get CLI.
+* import the file as a module:
 
 	import tris_rl_c1 as tris
 
-initialize the Game by setting robot-war-mode ON: 
+* initialize the Game by setting robot-war-mode ON: 
 
 	mio = tris.Game(True)
 
-Now make it play some games, so that it can build up a good experience:
+* have it play some games, so that it can build up a good experience:
 
 	for i in range(0,100000):
 	    mio.start()
 
-Once it's done, try it by yourself. First disengage robot-war-mode:
+* Once it's done, try it by yourself. First disengage robot-war-mode:
 
 	mio.robowar = False
 
-and then just start it:
+* then just start it:
 
 	mio.start()
 
