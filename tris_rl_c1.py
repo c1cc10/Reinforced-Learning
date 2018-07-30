@@ -1,5 +1,11 @@
+import argparse
 import random
 import copy
+#import tris
+import logging
+import logging.handlers
+
+logger = logging.getLogger('TTT')
 
 # global constants
 WINS = 1
@@ -18,6 +24,44 @@ WINNING_STATES = [(0, 1, 2),
                    (0, 4, 8),
                    (2, 4, 6)]
 STARTING_BOARD_STATE = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+
+VERSIONE = "Isolved SrL : UGV station. Version 0.3.0"
+PATH_LOG = "./ttt.log"
+
+def getLevelLog(args):
+        if args.verbose == 0:
+                l = logging.CRITICAL
+        elif args.verbose == 1:
+                l = logging.ERROR
+        elif args.verbose == 2:
+                l = logging.WARNING
+        elif args.verbose == 3:
+                l = logging.INFO
+        else:
+                l = logging.DEBUG
+        return l
+
+def setLogger(level=0):
+        logger.setLevel(level)
+        logger.propagate = False
+        ch = logging.handlers.WatchedFileHandler(PATH_LOG)
+        ch2 = logging.StreamHandler()
+        ch.setLevel(level)
+        ch2.setLevel(level)
+        formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
+        ch.setFormatter(formatter)
+        ch2.setFormatter(formatter)
+        logger.addHandler(ch)
+        logger.addHandler(ch2)
+
+def readCommandLine():
+        readCommandLine = argparse.ArgumentParser(description="Isolved It! UGV Station")
+        #readCommandLine.add_argument("-w", "--webcam", action='store_true', help="use webcam instead of drone cam")
+        #readCommandLine.add_argument("--path", type=str, help="list of path actions")
+        readCommandLine.add_argument("-v", "--verbose", type=int, choices=[0,1,2,3,4], default=1, help="STDOUT log level")
+        #readCommandLine.add_argument("-c", "--config_file", default="./dpms.conf", help="Load configuration file")
+        args = readCommandLine.parse_args(namespace=Game)
+        return args
 
 def ask_yes_no(question):
     """Ask a yes or no question."""
@@ -76,7 +120,7 @@ class Computer(Player):
             self.actual_state = self.root_state
         else: 
             self.actual_state = self.root_state
-            print(self.root_state.board)
+            #logger.info(self.root_state.board)
 
     def move(self, board):
         #choose if to play greedy or be explorative
@@ -84,31 +128,23 @@ class Computer(Player):
         buffer_board = board.copy()
         self.next_state = self.actual_state.has_state(buffer_board)
         r = random.random()
-        value = 0.50
+        max_square_value = 0.50
         ngue = []
         if self.next_state is None:
-            print("\nThis state was NOT found\n")
+            logger.info("\nThis state was NOT found\n")
             self.next_state = self.actual_state.add_state(buffer_board, None)
         if r < self.lr:
             # explore
-            print("\n Exploring\n")
+            logger.info("\n Exploring\n")
             self.next_state.move = random.choice(legal_moves(buffer_board))
             explore = True
         else:
             # be greedy
             if len(self.next_state.children) > 0:
-                for move in range(len(self.next_state.value)):
-                    if self.next_state.value[move] > value:
-                        value = self.next_state.value[move]
-                        self.next_state.move = move
-                    if self.next_state.value[move] == value:
-                        ngue.append(move)
-        if value <= 0.50:
-            if len(ngue) > 0:
-                self.next_state.move = random.choice(ngue)
-            else:
-                #print("ngue vuoto, vado a caso")
-                self.next_state.move = random.choice(legal_moves(buffer_board))
+                max_square_value = max(self.next_state.value)
+                self.next_state.move = self.next_state.value.index(max_square_value)
+        if max_square_value == 0.50:
+            self.next_state.move = random.choice(legal_moves(buffer_board))
         #self.memorize(board, my_move)
         board.value_display(self.next_state.value)
         board.update(self.next_state.move, self.sign)
@@ -119,16 +155,16 @@ class Computer(Player):
         if self.actual_state.move is None:
             self.actual_state.move = self.next_state.move
         if winner_sign == EMPTY: # partita in corso
-            #print("valutation: ")
+            #logger.info("valutation: ")
             self.actual_state.value[self.actual_state.move] +=  self.step_size * (self.next_state.value[self.next_state.move] - self.actual_state.value[self.actual_state.move])
             self.actual_state = self.next_state
         elif winner_sign == self.sign: #abbiamo vinto
-            #print("gain: ")
+            #logger.info("gain: ")
             self.actual_state.value[self.actual_state.move] +=  self.step_size * (WINS - self.actual_state.value[self.actual_state.move])
         else: #draw is a loss 
-            #print("pain: ")
+            #logger.info("pain: ")
             self.actual_state.value[self.actual_state.move] +=  self.step_size * (LOSES - self.actual_state.value[self.actual_state.move])
-        #print(self.actual_state.value[self.actual_state.move])
+        #logger.info(self.actual_state.value[self.actual_state.move])
 
 class State:
     def __init__(self, board, move):
@@ -157,10 +193,10 @@ class State:
         """ iterate tree in pre-order depth-first search order """
         if node is None:
             node = self
-        print(node.value)
+        logger.info(node.value)
         for child in node.children:
             for n in self.walk(child):
-                print(n.value)
+                logger.info(n.value)
 
 class Game():
     def __init__(self, bot_vs_bot = False):
@@ -177,7 +213,7 @@ class Game():
         self.board = Board()
         self.turn = X
         if self.robowar:
-            print("\nROBOWAR mode ON")
+            logger.info("\nROBOWAR mode ON")
             self.computer.sign = X
             self.computer2.sign = O
         else:
@@ -210,14 +246,20 @@ class Game():
     def congrat_winner(self):
         """Congratulate the winner."""
         if self.winner == self.computer.sign:
+            logger.info("As I predicted, human, I am triumphant once more.  \n" \
+                  "Proof that computers are superior to humans in all regards.")
             print("As I predicted, human, I am triumphant once more.  \n" \
                   "Proof that computers are superior to humans in all regards.")
     
         elif self.winner == self.human.sign:
+            logger.info("No, no!  It cannot be!  Somehow you tricked me, human. \n" \
+                  "But never again!  I, the computer, so swear it!")
             print("No, no!  It cannot be!  Somehow you tricked me, human. \n" \
                   "But never again!  I, the computer, so swear it!")
     
         elif self.winner == TIE:
+            logger.info("You were most lucky, human, and somehow managed to tie me.  \n" \
+                  "Celebrate today... for this is the best you will ever achieve.")
             print("You were most lucky, human, and somehow managed to tie me.  \n" \
                   "Celebrate today... for this is the best you will ever achieve.")
 
@@ -264,6 +306,12 @@ class Board():
         print("\t","---------------")
         print("\t",values[6], "|", values[7], "|", values[8])
 
+        logger.info("\n\t", values[0], "|", values[1], "|", values[2])
+        logger.info("\t","---------------")
+        logger.info("\t",values[3], "|", values[4], "|", values[5])
+        logger.info("\t","---------------")
+        logger.info("\t",values[6], "|", values[7], "|", values[8])
+
     def display(self):
         """Display game board on screen."""
         print("\n\t", self.current_board[0], "|", self.current_board[1], "|", self.current_board[2])
@@ -275,7 +323,18 @@ class Board():
     def copy(self):
         return self.current_board[:]
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+    arguments = readCommandLine()
+    l = getLevelLog(arguments)
+    setLogger(l)
+    logger.info(VERSIONE)
     mio = Game(True)
     for i in range(0,100000):
        mio.start()
+    mio.robowar = False
+    wanna_play = True
+    while wanna_play:
+        mio.start()
+        human_answer = input("Another Game?").lower()
+        if human_answer == 'n':
+            wanna_play = False
