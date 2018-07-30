@@ -3,6 +3,8 @@ experiment and base code for article explaining my understanding of the matter
 
 # Tris-rl-c1
 That's my first experiment based on what I read in R. Sutton's book: "Reinforced Learning, an introduction". It's a tic-tac-toe player which can race against itself or against a human player.
+* prova
+
 To run it, first run *python3* command and get the command line. Then import the file as a module:
 
 	import tris_rl_c1 as tris
