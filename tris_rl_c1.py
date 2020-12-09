@@ -1,3 +1,4 @@
+import pickle
 import argparse
 import random
 import copy
@@ -44,14 +45,14 @@ def getLevelLog(args):
 def setLogger(level=0):
         logger.setLevel(level)
         logger.propagate = False
-        ch = logging.handlers.WatchedFileHandler(PATH_LOG)
+        #ch = logging.handlers.WatchedFileHandler(PATH_LOG)
         ch2 = logging.StreamHandler()
-        ch.setLevel(level)
+        #ch.setLevel(level)
         ch2.setLevel(level)
         formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
-        ch.setFormatter(formatter)
+        #ch.setFormatter(formatter)
         ch2.setFormatter(formatter)
-        logger.addHandler(ch)
+        #logger.addHandler(ch)
         logger.addHandler(ch2)
 
 def readCommandLine():
@@ -59,7 +60,7 @@ def readCommandLine():
         #readCommandLine.add_argument("-w", "--webcam", action='store_true', help="use webcam instead of drone cam")
         #readCommandLine.add_argument("--path", type=str, help="list of path actions")
         readCommandLine.add_argument("-v", "--verbose", type=int, choices=[0,1,2,3,4], default=1, help="STDOUT log level")
-        #readCommandLine.add_argument("-c", "--config_file", default="./dpms.conf", help="Load configuration file")
+        readCommandLine.add_argument("-x", "--xperience", help="Load experience file")
         args = readCommandLine.parse_args(namespace=Game)
         return args
 
@@ -214,8 +215,17 @@ class Game():
         self.turn = X
         if self.robowar:
             logger.info("\nROBOWAR mode ON")
-            self.computer.sign = X
-            self.computer2.sign = O
+            if self.computer.sign = X:
+                self.computer.sign = O
+                self.computer2.sign = X
+            elif self.computer.sign = O:
+                self.computer.sign = X
+                self.computer2.sign = O
+            if not self.computer.sign:
+                self.computer.sign = X
+                self.computer2.sign = O
+            #self.computer.sign = X
+            #self.computer2.sign = O
         else:
             if ask_yes_no("Do you require the first move? (y/n): ") == "y":
                 print("\nThen take the first move.  You will need it.")
@@ -329,12 +339,21 @@ if __name__ == '__main__':
     setLogger(l)
     logger.info(VERSIONE)
     mio = Game(True)
-    for i in range(0,100000):
-       mio.start()
+    if arguments.xperience != '':
+        infile = open(arguments.xperience,'rb') 
+        mio.computer.root_state = pickle.load(infile)
+        infile.close()
+    else:
+        for i in range(0,100000):
+           mio.start()
+        with open('tic-tac-toe.pkl', 'wb') as output:
+            pickle.dump(mio.computer.root_state, output)
     mio.robowar = False
     wanna_play = True
     while wanna_play:
         mio.start()
         human_answer = input("Another Game?").lower()
         if human_answer == 'n':
+            with open(arguments.xperience, 'wb') as output:
+                pickle.dump(mio.computer.root_state, output)
             wanna_play = False
